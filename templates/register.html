@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}회원가입 | Tiny Market{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-container">
+        <div class="auth-copy">
+            <span class="eyebrow">CREATE ACCOUNT</span>
+            <h1>안전한 중고거래를<br>지금 시작해보세요.</h1>
+            <p>
+                상품 등록, 채팅, 포인트 송금, 신고 기능을 이용하려면
+                회원가입이 필요합니다.
+            </p>
+
+            <div class="auth-benefits">
+                <div>
+                    <strong>비밀번호 보호</strong>
+                    <span>원문이 아닌 해시값으로 안전하게 저장됩니다.</span>
+                </div>
+                <div>
+                    <strong>입력값 검증</strong>
+                    <span>허용되지 않은 형식과 중복 아이디를 차단합니다.</span>
+                </div>
+                <div>
+                    <strong>CSRF 방어</strong>
+                    <span>위조된 요청으로부터 회원가입 기능을 보호합니다.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-card">
+            <div class="auth-card-header">
+                <span class="auth-badge">회원가입</span>
+                <h2>계정을 만들어주세요</h2>
+                <p>모든 항목을 정확하게 입력해 주세요.</p>
+            </div>
+
+            <form method="post" novalidate class="auth-form">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.username.label(class="form-label") }}
+                    {{ form.username(
+                        class="form-input",
+                        placeholder="영문, 숫자, 밑줄 4~20자",
+                        autocomplete="username"
+                    ) }}
+
+                    {% for error in form.username.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.display_name.label(class="form-label") }}
+                    {{ form.display_name(
+                        class="form-input",
+                        placeholder="화면에 표시할 이름",
+                        autocomplete="name"
+                    ) }}
+
+                    {% for error in form.display_name.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.password.label(class="form-label") }}
+                    {{ form.password(
+                        class="form-input",
+                        placeholder="영문과 숫자를 포함한 8자 이상",
+                        autocomplete="new-password"
+                    ) }}
+
+                    {% for error in form.password.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.password_confirm.label(class="form-label") }}
+                    {{ form.password_confirm(
+                        class="form-input",
+                        placeholder="비밀번호를 다시 입력해 주세요",
+                        autocomplete="new-password"
+                    ) }}
+
+                    {% for error in form.password_confirm.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                {{ form.submit(class="button button-primary auth-submit") }}
+            </form>
+
+            <p class="auth-switch">
+                이미 계정이 있으신가요?
+                <a href="{{ url_for('login') }}">로그인</a>
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}

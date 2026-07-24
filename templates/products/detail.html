@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.title }} | Tiny Market{% endblock %}
+
+{% block content %}
+<section class="product-detail-page">
+    <div class="product-detail-inner">
+        <a
+            href="{{ url_for('product_list') }}"
+            class="detail-back-link"
+        >
+            ← 상품 목록으로
+        </a>
+
+        <div class="product-detail-grid">
+            <div class="product-detail-image-card">
+                {% if product.image_url %}
+                    <img
+                        src="{{ product.image_url }}"
+                        alt="{{ product.title }}"
+                        referrerpolicy="no-referrer"
+                    >
+                {% else %}
+                    <div class="product-detail-placeholder">
+                        <span>TM</span>
+                        <small>등록된 이미지가 없습니다.</small>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="product-detail-content">
+                <div class="product-detail-top">
+                    <div>
+                        <span
+                            class="product-status
+                            {% if product.status == 'SOLD' %}
+                                product-status-sold
+                            {% endif %}"
+                        >
+                            {% if product.status == "SELLING" %}
+                                판매 중
+                            {% elif product.status == "SOLD" %}
+                                판매 완료
+                            {% else %}
+                                숨김
+                            {% endif %}
+                        </span>
+
+                        <h1>{{ product.title }}</h1>
+
+                        <p class="product-detail-seller">
+                            판매자
+                            <strong>{{ product.seller.display_name }}</strong>
+                            <span>@{{ product.seller.username }}</span>
+                        </p>
+                    </div>
+
+                    <strong class="product-detail-price">
+                        {{ "{:,}".format(product.price) }}원
+                    </strong>
+                </div>
+
+                <div class="product-detail-meta">
+                    <div>
+                        <span>등록일</span>
+                        <strong>
+                            {{ product.created_at.strftime("%Y.%m.%d") }}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>상품 상태</span>
+                        <strong>
+                            {% if product.status == "SELLING" %}
+                                판매 중
+                            {% elif product.status == "SOLD" %}
+                                판매 완료
+                            {% else %}
+                                숨김
+                            {% endif %}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>신고 횟수</span>
+                        <strong>{{ product.report_count }}회</strong>
+                    </div>
+                </div>
+
+                <div class="product-description-box">
+                    <span class="eyebrow">DESCRIPTION</span>
+                    <h2>상품 설명</h2>
+                    <p>{{ product.description }}</p>
+                </div>
+
+                <div class="product-detail-actions">
+                    {% if can_manage %}
+                        <a
+                            href="{{ url_for('product_edit', product_id=product.id) }}"
+                            class="button button-secondary"
+                        >
+                            상품 수정
+                        </a>
+
+                        <form
+                            method="post"
+                            action="{{ url_for('product_delete', product_id=product.id) }}"
+                            onsubmit="return confirm('정말 이 상품을 삭제하시겠습니까?');"
+                        >
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="{{ csrf_token() }}"
+                            >
+
+                            <button
+                                type="submit"
+                                class="button button-danger"
+                            >
+                                상품 삭제
+                            </button>
+                        </form>
+                    {% else %}
+                        {% if current_user.is_authenticated %}
+                            <a
+                                href="{{ url_for('message_room', user_id=product.seller_id) }}"
+                                class="button button-primary"
+                            >
+                                판매자에게 메시지
+                            </a>
+
+                            <a
+                                href="{{ url_for('report_product', product_id=product.id) }}"
+                                class="button button-danger-outline"
+                            >
+                                상품 신고
+                            </a>
+                        {% else %}
+                            <a
+                                href="{{ url_for('login') }}"
+                                class="button button-primary"
+                            >
+                                로그인 후 문의하기
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}접근 권한 없음 | Tiny Market{% endblock %}
+
+{% block content %}
+<section class="error-page">
+    <div class="error-card">
+        <span class="error-code">403</span>
+        <h1>접근할 수 없는 페이지입니다.</h1>
+        <p>
+            이 페이지를 열 수 있는 권한이 없습니다.
+            로그인한 계정과 접근 권한을 확인해 주세요.
+        </p>
+
+        <div class="error-actions">
+            <a href="{{ url_for('index') }}" class="button button-primary">
+                홈으로 이동
+            </a>
+
+            <a href="javascript:history.back()" class="button button-secondary">
+                이전 페이지
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

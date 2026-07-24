@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}서버 오류 | Tiny Market{% endblock %}
+
+{% block content %}
+<section class="error-page">
+    <div class="error-card">
+        <span class="error-code">500</span>
+        <h1>서버에서 오류가 발생했습니다.</h1>
+        <p>
+            요청을 처리하는 중 문제가 발생했습니다.
+            잠시 후 다시 시도해 주세요.
+        </p>
+
+        <div class="error-actions">
+            <a href="{{ url_for('index') }}" class="button button-primary">
+                홈으로 이동
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}채팅 | Tiny Market{% endblock %}
+
+{% block content %}
+<section class="message-page">
+    <div class="message-page-inner">
+        <div class="message-page-header">
+            <div>
+                <span class="eyebrow">MESSAGES</span>
+                <h1>채팅</h1>
+                <p>다른 사용자와 안전하게 메시지를 주고받을 수 있습니다.</p>
+            </div>
+        </div>
+
+        <div class="message-list-card">
+            {% if users %}
+                {% for user in users %}
+                    {% set info = recent_messages[user.id] %}
+
+                    <a
+                        href="{{ url_for('message_room', user_id=user.id) }}"
+                        class="message-user-row"
+                    >
+                        <div class="message-avatar">
+                            {{ user.display_name[0] }}
+                        </div>
+
+                        <div class="message-user-content">
+                            <div class="message-user-top">
+                                <div>
+                                    <strong>{{ user.display_name }}</strong>
+                                    <span>@{{ user.username }}</span>
+                                </div>
+
+                                {% if info.message %}
+                                    <time>
+                                        {{ info.message.created_at.strftime("%m.%d %H:%M") }}
+                                    </time>
+                                {% endif %}
+                            </div>
+
+                            <div class="message-user-bottom">
+                                {% if info.message %}
+                                    <p>{{ info.message.content }}</p>
+                                {% else %}
+                                    <p class="message-empty-preview">
+                                        아직 주고받은 메시지가 없습니다.
+                                    </p>
+                                {% endif %}
+
+                                {% if info.unread_count > 0 %}
+                                    <span class="message-unread-badge">
+                                        {{ info.unread_count }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">✉</div>
+                    <h2>대화할 사용자가 없습니다.</h2>
+                    <p>다른 사용자가 가입하면 채팅을 시작할 수 있습니다.</p>
+
+                    <a
+                        href="{{ url_for('product_list') }}"
+                        class="button button-primary"
+                    >
+                        상품 둘러보기
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

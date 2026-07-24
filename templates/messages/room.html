@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}{{ other_user.display_name }}님과의 채팅 | Tiny Market{% endblock %}
+
+{% block content %}
+<section class="message-room-page">
+    <div class="message-room-inner">
+        <div class="message-room-card">
+            <header class="message-room-header">
+                <a
+                    href="{{ url_for('message_list') }}"
+                    class="message-back-button"
+                    aria-label="채팅 목록으로 돌아가기"
+                >
+                    ←
+                </a>
+
+                <div class="message-avatar">
+                    {{ other_user.display_name[0] }}
+                </div>
+
+                <div class="message-room-user-info">
+                    <h1>{{ other_user.display_name }}</h1>
+                    <p>@{{ other_user.username }}</p>
+                </div>
+
+                <a
+                    href="{{ url_for('report_user', user_id=other_user.id) }}"
+                    class="message-report-link"
+                >
+                    사용자 신고
+                </a>
+            </header>
+
+            <div class="message-conversation">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div
+                            class="message-bubble-row
+                            {% if message.sender_id == current_user.id %}
+                                message-bubble-row-me
+                            {% endif %}"
+                        >
+                            <div
+                                class="message-bubble
+                                {% if message.sender_id == current_user.id %}
+                                    message-bubble-me
+                                {% else %}
+                                    message-bubble-other
+                                {% endif %}"
+                            >
+                                <p>{{ message.content }}</p>
+
+                                <time>
+                                    {{ message.created_at.strftime("%Y.%m.%d %H:%M") }}
+                                </time>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="message-room-empty">
+                        <div>✉</div>
+                        <h2>첫 메시지를 보내보세요.</h2>
+                        <p>
+                            거래와 관련된 내용만 안전하게 주고받아 주세요.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <form method="post" class="message-send-form" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="message-input-wrap">
+                    {{ form.content(
+                        placeholder="메시지를 입력하세요.",
+                        maxlength="1000",
+                        rows="2"
+                    ) }}
+
+                    {% for error in form.content.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                {{ form.submit(class="button button-primary") }}
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

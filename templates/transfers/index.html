@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}포인트 송금 | Tiny Market{% endblock %}
+
+{% block content %}
+<section class="transfer-page">
+    <div class="transfer-page-inner">
+        <div class="transfer-header">
+            <div>
+                <span class="eyebrow">POINT TRANSFER</span>
+                <h1>포인트 송금</h1>
+                <p>
+                    다른 사용자에게 포인트를 안전하게 송금하고
+                    거래 내역을 확인할 수 있습니다.
+                </p>
+            </div>
+
+            <div class="transfer-balance-card">
+                <span>현재 보유 포인트</span>
+                <strong>{{ "{:,}".format(current_user.points) }}P</strong>
+            </div>
+        </div>
+
+        <div class="transfer-layout">
+            <section class="transfer-form-card">
+                <div class="transfer-card-header">
+                    <span class="auth-badge">SEND POINTS</span>
+                    <h2>포인트 보내기</h2>
+                    <p>
+                        받는 사람의 아이디와 송금액을 정확히 확인해 주세요.
+                    </p>
+                </div>
+
+                <form method="post" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="form-group">
+                        {{ form.receiver_username.label(class="form-label") }}
+
+                        {{ form.receiver_username(
+                            class="form-input",
+                            placeholder="받는 사람 아이디",
+                            autocomplete="off",
+                            maxlength="20"
+                        ) }}
+
+                        {% for error in form.receiver_username.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.amount.label(class="form-label") }}
+
+                        {{ form.amount(
+                            class="form-input",
+                            placeholder="송금할 포인트",
+                            min="1",
+                            max="100000000"
+                        ) }}
+
+                        {% for error in form.amount.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+
+                        <p class="form-help">
+                            현재 잔액을 초과하는 금액은 송금할 수 없습니다.
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.memo.label(class="form-label") }}
+
+                        {{ form.memo(
+                            class="form-input",
+                            placeholder="메모를 입력하세요. 선택 항목입니다.",
+                            maxlength="200"
+                        ) }}
+
+                        {% for error in form.memo.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="transfer-warning">
+                        송금이 완료된 뒤에는 자동으로 취소되지 않습니다.
+                        받는 사람의 아이디를 반드시 다시 확인해 주세요.
+                    </div>
+
+                    {{ form.submit(
+                        class="button button-primary transfer-submit-button"
+                    ) }}
+                </form>
+            </section>
+
+            <section class="transfer-history-card">
+                <div class="transfer-card-header">
+                    <span class="auth-badge">HISTORY</span>
+                    <h2>송금 내역</h2>
+                    <p>
+                        최근 주고받은 포인트 내역입니다.
+                    </p>
+                </div>
+
+                {% if transfers %}
+                    <div class="transfer-history-list">
+                        {% for transfer in transfers %}
+                            {% set is_sent = transfer.sender_id == current_user.id %}
+
+                            <article class="transfer-history-item">
+                                <div
+                                    class="transfer-history-icon
+                                    {% if is_sent %}
+                                        transfer-history-icon-sent
+                                    {% else %}
+                                        transfer-history-icon-received
+                                    {% endif %}"
+                                >
+                                    {% if is_sent %}
+                                        ↑
+                                    {% else %}
+                                        ↓
+                                    {% endif %}
+                                </div>
+
+                                <div class="transfer-history-content">
+                                    <div class="transfer-history-top">
+                                        <div>
+                                            {% if is_sent %}
+                                                <strong>
+                                                    {{ transfer.receiver.display_name }}님에게 송금
+                                                </strong>
+                                                <span>
+                                                    @{{ transfer.receiver.username }}
+                                                </span>
+                                            {% else %}
+                                                <strong>
+                                                    {{ transfer.sender.display_name }}님에게 받음
+                                                </strong>
+                                                <span>
+                                                    @{{ transfer.sender.username }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+
+                                        <strong
+                                            class="transfer-history-amount
+                                            {% if is_sent %}
+                                                transfer-amount-sent
+                                            {% else %}
+                                                transfer-amount-received
+                                            {% endif %}"
+                                        >
+                                            {% if is_sent %}-{% else %}+{% endif %}
+                                            {{ "{:,}".format(transfer.amount) }}P
+                                        </strong>
+                                    </div>
+
+                                    <div class="transfer-history-bottom">
+                                        {% if transfer.memo %}
+                                            <p>{{ transfer.memo }}</p>
+                                        {% else %}
+                                            <p class="transfer-empty-memo">
+                                                메모 없음
+                                            </p>
+                                        {% endif %}
+
+                                        <time>
+                                            {{ transfer.created_at.strftime("%Y.%m.%d %H:%M") }}
+                                        </time>
+                                    </div>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="transfer-empty">
+                        <div>₽</div>
+                        <h3>아직 송금 내역이 없습니다.</h3>
+                        <p>
+                            다른 사용자에게 포인트를 보내면 내역이 표시됩니다.
+                        </p>
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+</section>
+{% endblock %}

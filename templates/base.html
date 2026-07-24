@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}Tiny Market{% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a
+                href="{{ url_for('index') }}"
+                class="brand"
+            >
+                <span class="brand-mark">T</span>
+                <span class="brand-text">Tiny Market</span>
+            </a>
+
+            <nav
+                class="main-nav"
+                aria-label="주요 메뉴"
+            >
+                <a href="{{ url_for('index') }}">
+                    홈
+                </a>
+
+                <a href="{{ url_for('product_list') }}">
+                    상품 둘러보기
+                </a>
+
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('message_list') }}">
+                        채팅
+                    </a>
+
+                    <a href="{{ url_for('transfer_page') }}">
+                        송금
+                    </a>
+
+                    {% if current_user.is_admin %}
+                        <a href="{{ url_for('admin_dashboard') }}">
+                            관리자
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('login') }}">
+                        채팅
+                    </a>
+                {% endif %}
+            </nav>
+
+            <div class="header-actions">
+                {% if current_user.is_authenticated %}
+                    <a
+                        href="{{ url_for('mypage') }}"
+                        class="header-user"
+                    >
+                        {{ current_user.display_name }}님
+                    </a>
+
+                    {% if current_user.is_admin %}
+                        <span class="header-admin-badge">
+                            ADMIN
+                        </span>
+                    {% endif %}
+
+                    <form
+                        method="post"
+                        action="{{ url_for('logout') }}"
+                    >
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <button
+                            type="submit"
+                            class="button button-secondary button-small"
+                        >
+                            로그아웃
+                        </button>
+                    </form>
+                {% else %}
+                    <a
+                        href="{{ url_for('login') }}"
+                        class="text-link"
+                    >
+                        로그인
+                    </a>
+
+                    <a
+                        href="{{ url_for('register') }}"
+                        class="button button-primary button-small"
+                    >
+                        회원가입
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }}">
+                    <span>{{ message }}</span>
+
+                    <button
+                        type="button"
+                        class="flash-close"
+                        onclick="this.parentElement.remove()"
+                        aria-label="알림 닫기"
+                    >
+                        ×
+                    </button>
+                </div>
+            {% endfor %}
+        {% endwith %}
+    </div>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div>
+                <strong>Tiny Market</strong>
+                <p>
+                    안전한 중고거래를 위한 시큐어 코딩 프로젝트
+                </p>
+            </div>
+
+            <p class="footer-copy">
+                © 2026 Tiny Market
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

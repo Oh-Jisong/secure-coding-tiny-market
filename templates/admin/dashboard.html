@@ -1,0 +1,658 @@
+{% extends "base.html" %}
+
+{% block title %}관리자 대시보드 | Tiny Market{% endblock %}
+
+{% block content %}
+<section class="admin-page">
+    <div class="admin-page-inner">
+        <div class="admin-header">
+            <div>
+                <span class="eyebrow">ADMIN CONSOLE</span>
+                <h1>관리자 대시보드</h1>
+                <p>
+                    사용자, 상품, 신고, 채팅 및 송금 내역을 확인하고
+                    서비스 전체 요소를 관리합니다.
+                </p>
+            </div>
+
+            <div class="admin-badge">
+                관리자
+                <strong>{{ current_user.display_name }}</strong>
+            </div>
+        </div>
+
+        <div class="admin-summary-grid">
+            <article class="admin-summary-card">
+                <span>활성 사용자</span>
+                <strong>{{ active_user_count }}</strong>
+                <small>현재 정상 이용 중인 계정</small>
+            </article>
+
+            <article class="admin-summary-card">
+                <span>처리 대기 신고</span>
+                <strong>{{ pending_report_count }}</strong>
+                <small>검토가 필요한 신고 내역</small>
+            </article>
+
+            <article class="admin-summary-card">
+                <span>차단 상품</span>
+                <strong>{{ blocked_product_count }}</strong>
+                <small>현재 공개가 제한된 상품</small>
+            </article>
+
+            <article class="admin-summary-card">
+                <span>전체 상품</span>
+                <strong>{{ products|length }}</strong>
+                <small>등록된 전체 상품 수</small>
+            </article>
+
+            <article class="admin-summary-card">
+                <span>전체 채팅</span>
+                <strong>{{ message_count }}</strong>
+                <small>저장된 전체 메시지 수</small>
+            </article>
+
+            <article class="admin-summary-card">
+                <span>전체 송금</span>
+                <strong>{{ transfer_count }}</strong>
+                <small>처리된 전체 송금 건수</small>
+            </article>
+        </div>
+
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <div>
+                    <span class="eyebrow">REPORTS</span>
+                    <h2>신고 관리</h2>
+                </div>
+
+                <span class="admin-section-count">
+                    총 {{ reports|length }}건
+                </span>
+            </div>
+
+            {% if reports %}
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>신고자</th>
+                                <th>대상</th>
+                                <th>사유</th>
+                                <th>상세 내용</th>
+                                <th>상태</th>
+                                <th>접수일</th>
+                                <th>처리</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for report in reports %}
+                                <tr>
+                                    <td>#{{ report.id }}</td>
+
+                                    <td>
+                                        <strong>
+                                            {{ report.reporter.display_name }}
+                                        </strong>
+                                        <small>
+                                            @{{ report.reporter.username }}
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        {% if report.reported_product %}
+                                            <span class="admin-target-type">
+                                                상품
+                                            </span>
+
+                                            <strong>
+                                                {{ report.reported_product.title }}
+                                            </strong>
+                                        {% elif report.reported_user %}
+                                            <span class="admin-target-type">
+                                                사용자
+                                            </span>
+
+                                            <strong>
+                                                {{ report.reported_user.display_name }}
+                                            </strong>
+                                        {% else %}
+                                            <span class="admin-muted">
+                                                삭제된 대상
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if report.reason == "SPAM" %}
+                                            광고 또는 도배
+                                        {% elif report.reason == "FRAUD" %}
+                                            사기 의심
+                                        {% elif report.reason == "ABUSE" %}
+                                            욕설 또는 괴롭힘
+                                        {% elif report.reason == "INAPPROPRIATE" %}
+                                            부적절한 콘텐츠
+                                        {% elif report.reason == "FALSE_INFO" %}
+                                            허위 정보
+                                        {% else %}
+                                            기타
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <p class="admin-report-details">
+                                            {{ report.details }}
+                                        </p>
+                                    </td>
+
+                                    <td>
+                                        <span
+                                            class="admin-status
+                                            {% if report.status == 'PENDING' %}
+                                                admin-status-pending
+                                            {% elif report.status == 'RESOLVED' %}
+                                                admin-status-resolved
+                                            {% else %}
+                                                admin-status-rejected
+                                            {% endif %}"
+                                        >
+                                            {% if report.status == "PENDING" %}
+                                                처리 대기
+                                            {% elif report.status == "RESOLVED" %}
+                                                승인
+                                            {% else %}
+                                                반려
+                                            {% endif %}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        {{ report.created_at.strftime("%Y.%m.%d") }}
+                                    </td>
+
+                                    <td>
+                                        {% if report.status == "PENDING" %}
+                                            <form
+                                                method="post"
+                                                action="{{ url_for('admin_process_report', report_id=report.id) }}"
+                                                class="admin-report-form"
+                                            >
+                                                <input
+                                                    type="hidden"
+                                                    name="csrf_token"
+                                                    value="{{ csrf_token() }}"
+                                                >
+
+                                                <input
+                                                    type="text"
+                                                    name="admin_note"
+                                                    maxlength="500"
+                                                    placeholder="관리자 메모"
+                                                >
+
+                                                <div class="admin-action-group">
+                                                    <button
+                                                        type="submit"
+                                                        name="action"
+                                                        value="RESOLVE"
+                                                        class="admin-small-button admin-approve-button"
+                                                    >
+                                                        승인
+                                                    </button>
+
+                                                    <button
+                                                        type="submit"
+                                                        name="action"
+                                                        value="REJECT"
+                                                        class="admin-small-button admin-reject-button"
+                                                    >
+                                                        반려
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        {% else %}
+                                            {% if report.admin_note %}
+                                                <span class="admin-note">
+                                                    {{ report.admin_note }}
+                                                </span>
+                                            {% else %}
+                                                <span class="admin-muted">
+                                                    처리 완료
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="admin-empty">
+                    접수된 신고가 없습니다.
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <div>
+                    <span class="eyebrow">USERS</span>
+                    <h2>사용자 관리</h2>
+                </div>
+
+                <span class="admin-section-count">
+                    총 {{ users|length }}명
+                </span>
+            </div>
+
+            {% if users %}
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>사용자</th>
+                                <th>권한</th>
+                                <th>상태</th>
+                                <th>포인트</th>
+                                <th>가입일</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for user in users %}
+                                <tr>
+                                    <td>#{{ user.id }}</td>
+
+                                    <td>
+                                        <strong>{{ user.display_name }}</strong>
+                                        <small>@{{ user.username }}</small>
+                                    </td>
+
+                                    <td>
+                                        <span
+                                            class="admin-role
+                                            {% if user.role == 'ADMIN' %}
+                                                admin-role-admin
+                                            {% endif %}"
+                                        >
+                                            {{ user.role }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span
+                                            class="admin-status
+                                            {% if user.status == 'ACTIVE' %}
+                                                admin-status-resolved
+                                            {% else %}
+                                                admin-status-rejected
+                                            {% endif %}"
+                                        >
+                                            {% if user.status == "ACTIVE" %}
+                                                활성
+                                            {% else %}
+                                                정지
+                                            {% endif %}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        {{ "{:,}".format(user.points) }}P
+                                    </td>
+
+                                    <td>
+                                        {{ user.created_at.strftime("%Y.%m.%d") }}
+                                    </td>
+
+                                    <td>
+                                        {% if user.id == current_user.id %}
+                                            <span class="admin-muted">
+                                                현재 관리자
+                                            </span>
+                                        {% elif user.role == "ADMIN" %}
+                                            <span class="admin-muted">
+                                                관리자 계정
+                                            </span>
+                                        {% else %}
+                                            <form
+                                                method="post"
+                                                action="{{ url_for('admin_toggle_user_status', user_id=user.id) }}"
+                                            >
+                                                <input
+                                                    type="hidden"
+                                                    name="csrf_token"
+                                                    value="{{ csrf_token() }}"
+                                                >
+
+                                                <button
+                                                    type="submit"
+                                                    class="admin-small-button
+                                                    {% if user.status == 'ACTIVE' %}
+                                                        admin-reject-button
+                                                    {% else %}
+                                                        admin-approve-button
+                                                    {% endif %}"
+                                                >
+                                                    {% if user.status == "ACTIVE" %}
+                                                        계정 정지
+                                                    {% else %}
+                                                        계정 복구
+                                                    {% endif %}
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="admin-empty">
+                    등록된 사용자가 없습니다.
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <div>
+                    <span class="eyebrow">PRODUCTS</span>
+                    <h2>상품 관리</h2>
+                </div>
+
+                <span class="admin-section-count">
+                    총 {{ products|length }}개
+                </span>
+            </div>
+
+            {% if products %}
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>상품</th>
+                                <th>판매자</th>
+                                <th>가격</th>
+                                <th>상태</th>
+                                <th>신고</th>
+                                <th>등록일</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for product in products %}
+                                <tr>
+                                    <td>#{{ product.id }}</td>
+
+                                    <td>
+                                        <a
+                                            href="{{ url_for('product_detail', product_id=product.id) }}"
+                                            class="admin-product-link"
+                                        >
+                                            {{ product.title }}
+                                        </a>
+                                    </td>
+
+                                    <td>
+                                        <strong>
+                                            {{ product.seller.display_name }}
+                                        </strong>
+                                        <small>
+                                            @{{ product.seller.username }}
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        {{ "{:,}".format(product.price) }}원
+                                    </td>
+
+                                    <td>
+                                        <span
+                                            class="admin-status
+                                            {% if product.is_blocked %}
+                                                admin-status-rejected
+                                            {% elif product.status == 'SELLING' %}
+                                                admin-status-resolved
+                                            {% else %}
+                                                admin-status-pending
+                                            {% endif %}"
+                                        >
+                                            {% if product.is_blocked %}
+                                                차단
+                                            {% elif product.status == "SELLING" %}
+                                                판매 중
+                                            {% elif product.status == "SOLD" %}
+                                                판매 완료
+                                            {% else %}
+                                                숨김
+                                            {% endif %}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        {{ product.report_count }}회
+                                    </td>
+
+                                    <td>
+                                        {{ product.created_at.strftime("%Y.%m.%d") }}
+                                    </td>
+
+                                    <td>
+                                        <form
+                                            method="post"
+                                            action="{{ url_for('admin_toggle_product_block', product_id=product.id) }}"
+                                        >
+                                            <input
+                                                type="hidden"
+                                                name="csrf_token"
+                                                value="{{ csrf_token() }}"
+                                            >
+
+                                            <button
+                                                type="submit"
+                                                class="admin-small-button
+                                                {% if product.is_blocked %}
+                                                    admin-approve-button
+                                                {% else %}
+                                                    admin-reject-button
+                                                {% endif %}"
+                                            >
+                                                {% if product.is_blocked %}
+                                                    차단 해제
+                                                {% else %}
+                                                    상품 차단
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="admin-empty">
+                    등록된 상품이 없습니다.
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <div>
+                    <span class="eyebrow">MESSAGES</span>
+                    <h2>전체 채팅 내역</h2>
+                </div>
+
+                <span class="admin-section-count">
+                    총 {{ message_count }}건
+                </span>
+            </div>
+
+            {% if messages %}
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>보낸 사용자</th>
+                                <th>받은 사용자</th>
+                                <th>메시지 내용</th>
+                                <th>읽음 상태</th>
+                                <th>전송 일시</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for message in messages %}
+                                <tr>
+                                    <td>#{{ message.id }}</td>
+
+                                    <td>
+                                        <strong>
+                                            {{ message.sender.display_name }}
+                                        </strong>
+                                        <small>
+                                            @{{ message.sender.username }}
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        <strong>
+                                            {{ message.receiver.display_name }}
+                                        </strong>
+                                        <small>
+                                            @{{ message.receiver.username }}
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        <p class="admin-message-content">
+                                            {{ message.content }}
+                                        </p>
+                                    </td>
+
+                                    <td>
+                                        <span
+                                            class="admin-status
+                                            {% if message.is_read %}
+                                                admin-status-resolved
+                                            {% else %}
+                                                admin-status-pending
+                                            {% endif %}"
+                                        >
+                                            {% if message.is_read %}
+                                                읽음
+                                            {% else %}
+                                                읽지 않음
+                                            {% endif %}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        {{ message.created_at.strftime("%Y.%m.%d %H:%M") }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="admin-empty">
+                    저장된 채팅 내역이 없습니다.
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <div>
+                    <span class="eyebrow">TRANSFERS</span>
+                    <h2>전체 송금 내역</h2>
+                </div>
+
+                <span class="admin-section-count">
+                    총 {{ transfer_count }}건
+                </span>
+            </div>
+
+            {% if transfers %}
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>보낸 사용자</th>
+                                <th>받은 사용자</th>
+                                <th>송금액</th>
+                                <th>메모</th>
+                                <th>송금 일시</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for transfer in transfers %}
+                                <tr>
+                                    <td>#{{ transfer.id }}</td>
+
+                                    <td>
+                                        <strong>
+                                            {{ transfer.sender.display_name }}
+                                        </strong>
+                                        <small>
+                                            @{{ transfer.sender.username }}
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        <strong>
+                                            {{ transfer.receiver.display_name }}
+                                        </strong>
+                                        <small>
+                                            @{{ transfer.receiver.username }}
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        <strong class="admin-transfer-amount">
+                                            {{ "{:,}".format(transfer.amount) }}P
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        {% if transfer.memo %}
+                                            <p class="admin-message-content">
+                                                {{ transfer.memo }}
+                                            </p>
+                                        {% else %}
+                                            <span class="admin-muted">
+                                                메모 없음
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {{ transfer.created_at.strftime("%Y.%m.%d %H:%M") }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="admin-empty">
+                    저장된 송금 내역이 없습니다.
+                </div>
+            {% endif %}
+        </section>
+    </div>
+</section>
+{% endblock %}

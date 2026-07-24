@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | Tiny Market{% endblock %}
+
+{% block content %}
+<section class="product-form-page">
+    <div class="product-form-layout">
+        <div class="product-form-copy">
+            <span class="eyebrow">SELL YOUR ITEM</span>
+            <h1>{{ page_title }}</h1>
+            <p>
+                상품 정보를 정확하게 입력해 주세요.
+                등록된 정보는 다른 사용자에게 공개됩니다.
+            </p>
+
+            <div class="product-form-guide">
+                <div>
+                    <strong>상품명</strong>
+                    <span>짧고 명확하게 작성해 주세요.</span>
+                </div>
+                <div>
+                    <strong>상품 설명</strong>
+                    <span>상태와 하자 여부를 구체적으로 작성해 주세요.</span>
+                </div>
+                <div>
+                    <strong>이미지</strong>
+                    <span>신뢰할 수 있는 HTTPS 이미지 주소를 권장합니다.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-form-card">
+            <div class="product-form-card-header">
+                <span class="auth-badge">상품 정보</span>
+                <h2>{{ page_title }}</h2>
+                <p>필수 항목을 빠짐없이 입력해 주세요.</p>
+            </div>
+
+            <form method="post" novalidate class="setting-form">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.title.label(class="form-label") }}
+                    {{ form.title(
+                        class="form-input",
+                        placeholder="예: 상태 좋은 무선 키보드"
+                    ) }}
+
+                    {% for error in form.title.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(
+                        class="form-input product-textarea",
+                        placeholder="상품 상태, 사용 기간, 하자 여부 등을 자세히 입력해 주세요."
+                    ) }}
+
+                    {% for error in form.description.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="product-form-grid">
+                    <div class="form-group">
+                        {{ form.price.label(class="form-label") }}
+                        {{ form.price(
+                            class="form-input",
+                            placeholder="가격",
+                            min="0",
+                            max="100000000"
+                        ) }}
+
+                        {% for error in form.price.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.status.label(class="form-label") }}
+                        {{ form.status(class="form-input") }}
+
+                        {% for error in form.status.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    {{ form.image_url.label(class="form-label") }}
+                    {{ form.image_url(
+                        class="form-input",
+                        placeholder="https://example.com/image.jpg",
+                        autocomplete="url"
+                    ) }}
+
+                    {% for error in form.image_url.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+
+                    <p class="form-help">
+                        이미지 주소는 선택 항목입니다.
+                    </p>
+                </div>
+
+                <div class="product-form-actions">
+                    <a
+                        href="{{ url_for('product_list') }}"
+                        class="button button-secondary"
+                    >
+                        취소
+                    </a>
+
+                    {{ form.submit(
+                        class="button button-primary",
+                        value=submit_label
+                    ) }}
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

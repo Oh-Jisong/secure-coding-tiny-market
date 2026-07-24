@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | Tiny Market{% endblock %}
+
+{% block content %}
+<section class="report-page">
+    <div class="report-page-inner">
+        <div class="report-form-card">
+            <div class="report-form-header">
+                <span class="eyebrow">REPORT</span>
+                <h1>{{ page_title }}</h1>
+
+                <p>
+                    신고 대상 {{ target_type }}:
+                    <strong>{{ target_title }}</strong>
+                </p>
+            </div>
+
+            <div class="report-warning">
+                허위 신고나 반복적인 악의적 신고는 이용 제한의 사유가 될 수 있습니다.
+            </div>
+
+            <form method="post" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.reason.label(class="form-label") }}
+                    {{ form.reason(class="form-input") }}
+
+                    {% for error in form.reason.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.details.label(class="form-label") }}
+
+                    {{ form.details(
+                        class="form-input report-textarea",
+                        placeholder="신고 사유와 관련된 내용을 구체적으로 입력해 주세요.",
+                        maxlength="1000"
+                    ) }}
+
+                    {% for error in form.details.errors %}
+                        <p class="form-error">{{ error }}</p>
+                    {% endfor %}
+
+                    <p class="form-help">
+                        개인정보나 민감한 정보는 입력하지 마세요.
+                    </p>
+                </div>
+
+                <div class="report-form-actions">
+                    <a
+                        href="{{ cancel_url }}"
+                        class="button button-secondary"
+                    >
+                        취소
+                    </a>
+
+                    {{ form.submit(class="button button-danger") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
